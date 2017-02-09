@@ -1,10 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <RecipeDefs>
 
   <!-- ==================== 81mm mortar shells ========================== -->
 
   <RecipeDef ParentName="GrenadeRecipeBase">
-    <defName>MakeArtilleryShell</defName>
+    <defName>MakeMortarShell</defName>
     <label>make 81mm HE mortar shells x5</label>
     <description>Craft 5 81mm HE mortar shells.</description>
     <jobString>Making 81mm HE mortar shells.</jobString>
@@ -28,7 +28,7 @@
       <li>
         <filter>
           <thingDefs>
-            <li>Components</li>
+            <li>Component</li>
           </thingDefs>
         </filter>
         <count>2</count>
@@ -38,11 +38,11 @@
       <thingDefs>
         <li>Steel</li>
         <li>FSX</li>
-        <li>Components</li>
+        <li>Component</li>
       </thingDefs>
     </fixedIngredientFilter>
     <products>
-      <ArtilleryShell>5</ArtilleryShell>
+      <MortarShell>5</MortarShell>
     </products>
   </RecipeDef>
 
@@ -71,7 +71,7 @@
       <li>
         <filter>
           <thingDefs>
-            <li>Components</li>
+            <li>Component</li>
           </thingDefs>
         </filter>
         <count>2</count>
@@ -81,7 +81,7 @@
       <thingDefs>
         <li>Steel</li>
         <li>Prometheum</li>
-        <li>Components</li>
+        <li>Component</li>
       </thingDefs>
     </fixedIngredientFilter>
     <products>
@@ -106,7 +106,7 @@
       <li>
         <filter>
           <thingDefs>
-            <li>Components</li>
+            <li>Component</li>
           </thingDefs>
         </filter>
         <count>7</count>
@@ -115,7 +115,7 @@
     <fixedIngredientFilter>
       <thingDefs>
         <li>Steel</li>
-        <li>Components</li>
+        <li>Component</li>
       </thingDefs>
     </fixedIngredientFilter>
     <products>
@@ -150,7 +150,7 @@
       <li>
         <filter>
           <thingDefs>
-            <li>Components</li>
+            <li>Component</li>
           </thingDefs>
         </filter>
         <count>3</count>
@@ -160,7 +160,7 @@
       <thingDefs>
         <li>Steel</li>
         <li>FSX</li>
-        <li>Components</li>
+        <li>Component</li>
       </thingDefs>
     </fixedIngredientFilter>
     <products>
@@ -193,7 +193,7 @@
       <li>
         <filter>
           <thingDefs>
-            <li>Components</li>
+            <li>Component</li>
           </thingDefs>
         </filter>
         <count>2</count>
@@ -203,7 +203,7 @@
       <thingDefs>
         <li>Steel</li>
         <li>FSX</li>
-        <li>Components</li>
+        <li>Component</li>
       </thingDefs>
     </fixedIngredientFilter>
     <products>
@@ -228,7 +228,7 @@
       <li>
         <filter>
           <thingDefs>
-            <li>Components</li>
+            <li>Component</li>
           </thingDefs>
         </filter>
         <count>7</count>
@@ -237,7 +237,7 @@
     <fixedIngredientFilter>
       <thingDefs>
         <li>Steel</li>
-        <li>Components</li>
+        <li>Component</li>
       </thingDefs>
     </fixedIngredientFilter>
     <products>

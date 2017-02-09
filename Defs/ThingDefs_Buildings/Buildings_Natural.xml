@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ThingDefs>
 
   <ThingDef Name="BuildingNaturalBase" Abstract="True">
@@ -6,6 +6,7 @@
     <selectable>true</selectable>
     <drawerType>MapMeshOnly</drawerType>
     <filthLeaving>RockRubble</filthLeaving>
+    <scatterableOnMapGen>false</scatterableOnMapGen>
     <damageMultipliers>
       <li>
         <damageDef>Bomb</damageDef>
@@ -30,7 +31,6 @@
     </damageMultipliers>
   </ThingDef>
 
-
   <ThingDef Name="RockBase" ParentName="BuildingNaturalBase" Abstract="True" >
     <thingClass>Mineable</thingClass>
     <graphicData>
@@ -42,8 +42,9 @@
         <li>MapEdge</li>
       </linkFlags>
     </graphicData>
-    <altitudeLayer>BuildingTall</altitudeLayer>
+    <altitudeLayer>Building</altitudeLayer>
     <passability>Impassable</passability>
+    <blockWind>true</blockWind>
     <castEdgeShadows>true</castEdgeShadows>
     <fillPercent>1</fillPercent>
     <coversFloor>true</coversFloor>
@@ -60,15 +61,12 @@
     <building>
       <isInert>true</isInert>
       <isNaturalRock>true</isNaturalRock>
-      <soundMined>CollapseRock</soundMined>
       <canBuildNonEdificesUnder>false</canBuildNonEdificesUnder>
       <deconstructible>false</deconstructible>
     </building>
   </ThingDef>
 
-
   <!--============================ Simple mineables ===============================-->
-
 
   <ThingDef ParentName="RockBase">
     <defName>CollapsedRocks</defName>
@@ -90,11 +88,8 @@
     </building>
   </ThingDef>
 
-
-
   <!--============================ Resource rocks ===============================-->
-  
-  
+
   <ThingDef ParentName="RockBase">
     <defName>MineableSteel</defName>
     <label>compacted steel</label>
@@ -114,10 +109,10 @@
       <mineableThing>Steel</mineableThing>
       <mineableYield>35</mineableYield>
       <mineableScatterCommonality>1</mineableScatterCommonality>
-      <mineableScatterBlotchSizeRange>
+      <mineableScatterLumpSizeRange>
         <min>20</min>
         <max>40</max>
-      </mineableScatterBlotchSizeRange>
+      </mineableScatterLumpSizeRange>
     </building>
   </ThingDef>
 
@@ -140,13 +135,12 @@
       <mineableThing>Silver</mineableThing>
       <mineableYield>35</mineableYield>
       <mineableScatterCommonality>0.10</mineableScatterCommonality>
-      <mineableScatterBlotchSizeRange>
+      <mineableScatterLumpSizeRange>
         <min>4</min>
         <max>12</max>
-      </mineableScatterBlotchSizeRange>
+      </mineableScatterLumpSizeRange>
     </building>
   </ThingDef>
-
 
   <ThingDef ParentName="RockBase">
     <defName>MineableGold</defName>
@@ -167,13 +161,12 @@
       <mineableThing>Gold</mineableThing>
       <mineableYield>35</mineableYield>
       <mineableScatterCommonality>0.07</mineableScatterCommonality>
-      <mineableScatterBlotchSizeRange>
+      <mineableScatterLumpSizeRange>
         <min>1</min>
         <max>6</max>
-      </mineableScatterBlotchSizeRange>
+      </mineableScatterLumpSizeRange>
     </building>
   </ThingDef>
-
 
   <ThingDef ParentName="RockBase">
     <defName>MineableUranium</defName>
@@ -194,14 +187,12 @@
       <mineableThing>Uranium</mineableThing>
       <mineableYield>35</mineableYield>
       <mineableScatterCommonality>0.07</mineableScatterCommonality>
-      <mineableScatterBlotchSizeRange>
+      <mineableScatterLumpSizeRange>
         <min>1</min>
         <max>6</max>
-      </mineableScatterBlotchSizeRange>
+      </mineableScatterLumpSizeRange>
     </building>
   </ThingDef>
-
-
 
   <ThingDef ParentName="RockBase">
     <defName>MineablePlasteel</defName>
@@ -222,14 +213,13 @@
       <mineableThing>Plasteel</mineableThing>
       <mineableYield>35</mineableYield>
       <mineableScatterCommonality>0.05</mineableScatterCommonality>
-      <mineableScatterBlotchSizeRange>
+      <mineableScatterLumpSizeRange>
         <min>10</min>
         <max>50</max>
-      </mineableScatterBlotchSizeRange>
+      </mineableScatterLumpSizeRange>
     </building>
   </ThingDef>
 
-  
   <ThingDef ParentName="RockBase">
     <defName>MineableJade</defName>
     <label>jade</label>
@@ -249,14 +239,13 @@
       <mineableThing>Jade</mineableThing>
       <mineableYield>35</mineableYield>
       <mineableScatterCommonality>0.065</mineableScatterCommonality>
-      <mineableScatterBlotchSizeRange>
+      <mineableScatterLumpSizeRange>
         <min>1</min>
         <max>6</max>
-      </mineableScatterBlotchSizeRange>
+      </mineableScatterLumpSizeRange>
     </building>
   </ThingDef>
-  
-  
+
   <ThingDef ParentName="RockBase">
     <defName>MineableComponents</defName>
     <label>compacted machinery</label>
@@ -271,23 +260,20 @@
     <description>Ancient machinery, compacted over time. Can be mined for useful components.</description>
     <building>
       <isResourceRock>true</isResourceRock>
-      <mineableThing>Components</mineableThing>
+      <mineableThing>Component</mineableThing>
       <mineableYield>2</mineableYield>
       <mineableScatterCommonality>1.00</mineableScatterCommonality> <!-- as often as steel, with smaller blotches -->
-      <mineableScatterBlotchSizeRange>
+      <mineableScatterLumpSizeRange>
         <min>3</min>
         <max>6</max>
-      </mineableScatterBlotchSizeRange>
+      </mineableScatterLumpSizeRange>
     </building>
   </ThingDef>
-  
-
 
   <ThingDef ParentName="BuildingNaturalBase">
-    <category>Ethereal</category>
-    <label>steam geyser</label>
     <defName>SteamGeyser</defName>
-    <thingClass>SteamGeyser</thingClass>
+    <thingClass>Building_SteamGeyser</thingClass>
+    <label>steam geyser</label>
     <graphicData>
       <texPath>Things/Building/Natural/SteamGeyser</texPath>
       <graphicClass>Graphic_Single</graphicClass>
@@ -295,6 +281,7 @@
       <drawSize>(4,4)</drawSize>
     </graphicData>
     <altitudeLayer>Floor</altitudeLayer>
+    <rotatable>false</rotatable>
     <destroyable>false</destroyable>
     <useHitPoints>false</useHitPoints>
     <tickerType>Normal</tickerType>
@@ -303,34 +290,53 @@
     <size>(2,2)</size>
     <neverOverlapFloors>true</neverOverlapFloors>
     <blockPlants>true</blockPlants>
+    <building>
+      <isEdifice>false</isEdifice>
+      <claimable>false</claimable>
+      <deconstructible>false</deconstructible>
+    </building>
   </ThingDef>
 
   <ThingDef ParentName="BuildingNaturalBase">
     <defName>Hive</defName>
     <label>hive</label>
-    <description>A bug hive. Will spawn additional bugs and hives over time.</description>
+    <description>A hive of giant insects. Will spawn additional insects and hives over time.</description>
     <thingClass>Hive</thingClass>
     <graphicData>
       <texPath>Things/Building/Natural/Hive</texPath>
       <graphicClass>Graphic_Single</graphicClass>
       <drawSize>1.6</drawSize>
     </graphicData>
-    <altitudeLayer>BuildingTall</altitudeLayer>
+    <altitudeLayer>Building</altitudeLayer>
     <rotatable>false</rotatable>
     <statBases>
       <MaxHitPoints>300</MaxHitPoints>
       <Flammability>1.0</Flammability>
     </statBases>
     <pathCost>10</pathCost>
+    <blockWind>true</blockWind>
     <tickerType>Rare</tickerType>
     <passability>PassThroughOnly</passability>
     <comps>
+      <li Class="CompProperties_SpawnerHives" />
       <li Class="CompProperties_Spawner">
         <thingToSpawn>InsectJelly</thingToSpawn>
         <spawnCount>20</spawnCount>
-        <spawnInterval>26000</spawnInterval>
-        <spawnMaxAdjacent>100</spawnMaxAdjacent>
+        <spawnIntervalRange>
+          <min>26000</min>
+          <max>30000</max>
+        </spawnIntervalRange>
+        <spawnMaxAdjacent>40</spawnMaxAdjacent>
         <spawnForbidden>true</spawnForbidden>
+      </li>
+      <li Class="CompProperties_Spawner">
+        <thingToSpawn>GlowPod</thingToSpawn>
+        <spawnCount>1</spawnCount>
+        <spawnIntervalRange>
+          <min>30000</min>
+          <max>60000</max>
+        </spawnIntervalRange>
+        <spawnMaxAdjacent>1</spawnMaxAdjacent>
       </li>
       <li Class="CompProperties_HeatPusher">
         <heatPerSecond>7</heatPerSecond>
@@ -342,6 +348,17 @@
           <max>9999</max>
         </safeTemperatureRange>
         <damagePerTickRare>8</damagePerTickRare>
+      </li>
+      <li Class="CompProperties_SpawnerFilth">
+        <filthDef>FilthSlime</filthDef>
+        <spawnCountOnSpawn>10</spawnCountOnSpawn>
+        <spawnMtbHours>4</spawnMtbHours>
+        <spawnRadius>5</spawnRadius>
+      </li>
+      <li Class="CompProperties_Maintainable">
+        <ticksHealthy>60000</ticksHealthy>
+        <ticksNeedsMaintenance>40000</ticksNeedsMaintenance>
+        <damagePerTickRare>10</damagePerTickRare>
       </li>
     </comps>
   </ThingDef>

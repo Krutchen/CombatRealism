@@ -45,21 +45,21 @@ namespace Combat_Realism
                 {
                     return;
                 }
-                int maxCount;
-                if(compInvInt.CanFitInInventory(thing, out maxCount))
+                int maxCountTemp;
+                if (compInvInt.CanFitInInventory(thing, out maxCountTemp))
                 {
-                    IntVec3 spawnPos = inventory.parent.Position.InBounds() ? inventory.parent.Position : IntVec3.Zero;
-                    GenSpawn.Spawn(thing, spawnPos);
+                    IntVec3 spawnPos = inventory.parent.Position.InBounds(Find.VisibleMap) ? inventory.parent.Position : IntVec3.Zero;
+                    GenSpawn.Spawn(thing, spawnPos, Find.VisibleMap);
 
                     // If we cant fit the whole stack, fit as much as we can and return
-                    if(maxCount < thing.stackCount)
+                    if (maxCountTemp < thing.stackCount)
                     {
-                        thing.stackCount = maxCount;
+                        thing.stackCount = maxCountTemp;
                         compInvInt.container.TryAdd(thing, thing.stackCount);
                         return;
                     }
                     compInvInt.container.TryAdd(thing, thing.stackCount);
-                    thingsToMake -= maxCount;
+                    thingsToMake -= maxCountTemp;
                 }
                 else
                 {

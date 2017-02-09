@@ -13,7 +13,7 @@ namespace Combat_Realism.Detours
     {
         internal static bool HasHuntingWeapon(Pawn p)
         {
-            if (p.equipment.Primary != null)
+            if (p.equipment.Primary != null && p.equipment.Primary.def.IsRangedWeapon)
             {
                 CompAmmoUser comp = p.equipment.Primary.TryGetComp<CompAmmoUser>();
                 if (comp == null 
@@ -21,14 +21,6 @@ namespace Combat_Realism.Detours
                     || (comp.hasMagazine && comp.curMagCount > 0) 
                     || comp.hasAmmo)
                     return true;
-            }
-            List<Hediff> hediffs = p.health.hediffSet.hediffs;
-            for (int i = 0; i < hediffs.Count; i++)
-            {
-                if (hediffs[i].def.addedPartProps != null && hediffs[i].def.addedPartProps.isGoodWeapon)
-                {
-                    return true;
-                }
             }
             return false;
         }

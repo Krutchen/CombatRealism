@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using RimWorld;
+using UnityEngine;
 using Verse;
 using Verse.AI;
-using UnityEngine;
 
 namespace Combat_Realism
 {
@@ -21,7 +18,7 @@ namespace Combat_Realism
 
         private const int proximitySearchRadius = 20;
         private const int maximumSearchRadius = 80;
-        private const int ticksBeforeDropRaw = 7200;
+        private const int ticksBeforeDropRaw = 40000;
 
         public override float GetPriority(Pawn pawn)
         {
@@ -62,7 +59,7 @@ namespace Combat_Realism
                     {
                         ItemPriority curPriority = ItemPriority.None;
                         Thing curThing = null;
-                        int numCarried = inventory.container.NumContained(curSlot.Def);
+                        int numCarried = inventory.container.TotalStackCountOfDef(curSlot.Def);
 
                         // Add currently equipped gun
                         if (pawn.equipment != null && pawn.equipment.Primary != null)
@@ -73,6 +70,7 @@ namespace Combat_Realism
                         {
                             curThing = GenClosest.ClosestThingReachable(
                                 pawn.Position,
+                                pawn.Map,
                                 ThingRequest.ForDef(curSlot.Def),
                                 PathEndMode.ClosestTouch,
                                 TraverseParms.For(pawn, Danger.None, TraverseMode.ByPawn),
@@ -82,7 +80,8 @@ namespace Combat_Realism
                             else
                             {
                                 curThing = GenClosest.ClosestThingReachable(
-                                    pawn.Position,
+                                    pawn.Position, 
+                                    pawn.Map,
                                     ThingRequest.ForDef(curSlot.Def),
                                     PathEndMode.ClosestTouch,
                                     TraverseParms.For(pawn, Danger.None, TraverseMode.ByPawn),
@@ -90,7 +89,7 @@ namespace Combat_Realism
                                     x => !x.IsForbidden(pawn) && pawn.CanReserve(x));
                                 if (curThing != null)
                                 {
-                                    if (!curSlot.Def.IsNutritionSource && numCarried / curSlot.Count <= 0.5f) curPriority = ItemPriority.LowStock;
+                                    if (!curSlot.Def.IsNutritionGivingIngestible && numCarried / curSlot.Count <= 0.5f) curPriority = ItemPriority.LowStock;
                                     else curPriority = ItemPriority.Low;
                                 }
                             }
@@ -126,46 +125,43 @@ namespace Combat_Realism
                 return true;
             }
             // Check to see if there is at least one loadout slot specifying currently equipped weapon
-            ThingWithComps equipment = pawn.equipment?.Primary ?? null;
+            ThingWithComps equipment = ((pawn.equipment == null) ? null : pawn.equipment.Primary) ?? null;
             if (equipment != null && !loadout.Slots.Any(slot => slot.Def == equipment.def && slot.Count >= 1))
             {
                 return true;
             }
 
             // Go through each item in the inventory and see if its part of our loadout
-            bool allowDropRaw = Find.TickManager.TicksGame > pawn.mindState.lastInventoryRawFoodUseTick + ticksBeforeDropRaw;
+            bool allowDropRaw = Find.TickManager.TicksGame > pawn.mindState?.lastInventoryRawFoodUseTick + ticksBeforeDropRaw;
             foreach (Thing thing in inventory.container)
             {
-                if(allowDropRaw || !thing.def.IsNutritionSource || thing.def.ingestible.preferability > FoodPreferability.Raw)
+                if(allowDropRaw || !thing.def.IsNutritionGivingIngestible || thing.def.ingestible.preferability > FoodPreferability.RawTasty)
                 {
                     LoadoutSlot slot = loadout.Slots.FirstOrDefault(x => x.Def == thing.def);
                     if (slot == null)
                     {
                         return true;
                     }
-                    else
-                    {
-                        int numContained = inventory.container.NumContained(thing.def);
+                    int numContained = inventory.container.TotalStackCountOfDef(thing.def);
 
-                        // Add currently equipped gun
-                        if (pawn.equipment != null && pawn.equipment.Primary != null)
+                    // Add currently equipped gun
+                    if (pawn.equipment != null && pawn.equipment.Primary != null)
+                    {
+                        if (pawn.equipment.Primary.def == slot.Def)
                         {
-                            if (pawn.equipment.Primary.def == slot.Def)
-                            {
-                                numContained++;
-                            }
+                            numContained++;
                         }
-                        if (slot.Count < numContained)
-                        {
-                            return true;
-                        }
+                    }
+                    if (slot.Count < numContained)
+                    {
+                        return true;
                     }
                 }
             }
             return false;
         }
 
-        protected override Job TryGiveTerminalJob(Pawn pawn)
+        protected override Job TryGiveJob(Pawn pawn)
         {
             // Get inventory
             CompInventory inventory = pawn.TryGetComp<CompInventory>();
@@ -177,7 +173,7 @@ namespace Combat_Realism
                 // Find and drop excess items
                 foreach (LoadoutSlot slot in loadout.Slots)
                 {
-                    int numContained = inventory.container.NumContained(slot.Def);
+                    int numContained = inventory.container.TotalStackCountOfDef(slot.Def);
 
                     // Add currently equipped gun
                     if (pawn.equipment != null && pawn.equipment.Primary != null)
@@ -194,16 +190,13 @@ namespace Combat_Realism
                         if (thing != null)
                         {
                             Thing droppedThing;
-                            if (inventory.container.TryDrop(thing, pawn.Position, ThingPlaceMode.Near, numContained - slot.Count, out droppedThing))
+                            if (inventory.container.TryDrop(thing, pawn.Position, pawn.Map, ThingPlaceMode.Near, numContained - slot.Count, out droppedThing))
                             {
                                 if (droppedThing != null)
                                 {
                                     return HaulAIUtility.HaulToStorageJob(pawn, droppedThing);
                                 }
-                                else
-                                {
-                                    Log.Error(pawn.ToString() + " tried dropping " + thing.ToString() + " from loadout but resulting thing is null");
-                                }
+                                Log.Error(pawn + " tried dropping " + thing + " from loadout but resulting thing is null");
                             }
                         }
                     }
@@ -220,21 +213,18 @@ namespace Combat_Realism
                 }
 
                 // Find excess items in inventory that are not part of our loadout
-                bool allowDropRaw = Find.TickManager.TicksGame > pawn.mindState.lastInventoryRawFoodUseTick + ticksBeforeDropRaw;
+                bool allowDropRaw = Find.TickManager.TicksGame > pawn.mindState?.lastInventoryRawFoodUseTick + ticksBeforeDropRaw;
                 Thing thingToRemove = inventory.container.FirstOrDefault(t => 
-                    (allowDropRaw || !t.def.IsNutritionSource || t.def.ingestible.preferability > FoodPreferability.Raw) 
+                    (allowDropRaw || !t.def.IsNutritionGivingIngestible || t.def.ingestible.preferability > FoodPreferability.RawTasty)
                     && !loadout.Slots.Any(s => s.Def == t.def));
                 if (thingToRemove != null)
                 {
                     Thing droppedThing;
-                    if (inventory.container.TryDrop(thingToRemove, pawn.Position, ThingPlaceMode.Near, thingToRemove.stackCount, out droppedThing))
+                    if (inventory.container.TryDrop(thingToRemove, pawn.Position, pawn.Map, ThingPlaceMode.Near, thingToRemove.stackCount, out droppedThing))
                     {
                         return HaulAIUtility.HaulToStorageJob(pawn, droppedThing);
                     }
-                    else
-                    {
-                        Log.Error(pawn.ToString() + " tried dropping " + thingToRemove.ToString() + " from inventory but resulting thing is null");
-                    }
+                    Log.Error(pawn + " tried dropping " + thingToRemove + " from inventory but resulting thing is null");
                 }
 
                 // Find missing items
@@ -252,8 +242,8 @@ namespace Combat_Realism
                         return new Job(JobDefOf.Equip, closestThing);
                     }
                     // Take items into inventory if needed
-                    int numContained = inventory.container.NumContained(prioritySlot.Def);
-                    return new Job(JobDefOf.TakeInventory, closestThing) { maxNumToCarry = Mathf.Min(closestThing.stackCount, prioritySlot.Count - numContained, count) };
+                    int numContained = inventory.container.TotalStackCountOfDef(prioritySlot.Def);
+                    return new Job(JobDefOf.TakeInventory, closestThing) { count = Mathf.Min(closestThing.stackCount, prioritySlot.Count - numContained, count) };
                 }
             }
             return null;

@@ -36,7 +36,7 @@
     <defName>Spine</defName>
     <label>spine</label>
     <hitPoints>20</hitPoints>
-    <oldInjuryBaseChance>1</oldInjuryBaseChance>
+    <oldInjuryBaseChance>0.5</oldInjuryBaseChance>
     <skinCovered>false</skinCovered>
     <isSolid>true</isSolid>
     <activities>

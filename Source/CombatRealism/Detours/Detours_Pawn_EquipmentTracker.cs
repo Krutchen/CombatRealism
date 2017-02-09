@@ -11,8 +11,12 @@ namespace Combat_Realism.Detours
 {
     internal static class Detours_Pawn_EquipmentTracker
     {
+        private const BindingFlags UniversalBindingFlags = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+
         private static readonly FieldInfo pawnFieldInfo = typeof(Pawn_EquipmentTracker).GetField("pawn", BindingFlags.Instance | BindingFlags.NonPublic);
         private static readonly FieldInfo primaryIntFieldInfo = typeof(Pawn_EquipmentTracker).GetField("primaryInt", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static readonly PropertyInfo primaryPropertyInfo = typeof(Pawn_EquipmentTracker).GetProperty("Primary", UniversalBindingFlags);
+
 
         internal static void AddEquipment(this Pawn_EquipmentTracker _this, ThingWithComps newEq)
         {
@@ -22,57 +26,60 @@ namespace Combat_Realism.Detours
             Pawn pawn = (Pawn)pawnFieldInfo.GetValue(_this);
             ThingWithComps primaryInt = (ThingWithComps)primaryIntFieldInfo.GetValue(_this);
 
-            SlotGroupUtility.Notify_TakingThing(newEq);
-            if (_this.AllEquipment.Where(eq => eq.def == newEq.def).Any<ThingWithComps>())
+            if ((from eq in _this.AllEquipment
+                 where eq.def == newEq.def
+                 select eq).Any<ThingWithComps>())
             {
                 Log.Error(string.Concat(new object[]
-		        {
-			        "Pawn ",
-			        pawn.LabelCap,
-			        " got equipment ",
-			        newEq,
-			        " while already having it."
-		        }));
+                {
+                    "Pawn ",
+                    pawn.LabelCap,
+                    " got equipment ",
+                    newEq,
+                    " while already having it."
+                }));
                 return;
             }
-            if (newEq.def.equipmentType == EquipmentType.Primary && primaryInt != null)
+            if (newEq.def.equipmentType == EquipmentType.Primary && _this.Primary != null)
             {
                 Log.Error(string.Concat(new object[]
-		        {
-			        "Pawn ",
-			        pawn.LabelCap,
-			        " got primaryInt equipment ",
-			        newEq,
-			        " while already having primaryInt equipment ",
-			        primaryInt
-		        }));
+                {
+                    "Pawn ",
+                    pawn.LabelCap,
+                    " got primaryInt equipment ",
+                    newEq,
+                    " while already having primaryInt equipment ",
+                    _this.Primary
+                }));
                 return;
             }
             if (newEq.def.equipmentType == EquipmentType.Primary)
             {
-                primaryIntFieldInfo.SetValue(_this, newEq);  // Changed assignment to SetValue() since we're fetching a private variable through reflection
+                primaryPropertyInfo.SetValue(_this, newEq, null); // Changed assignment to SetValue() since we're fetching a private variable through reflection
+            }
+            else
+            {
+                Log.Error("Tried to equip " + newEq + " but it's not Primary. Secondary weapons are not supported.");
             }
             foreach (Verb current in newEq.GetComp<CompEquippable>().AllVerbs)
             {
                 current.caster = pawn;
                 current.Notify_PickedUp();
             }
-
-            Utility.TryUpdateInventory(pawn);   // Added equipment, update inventory
+            CR_Utility.TryUpdateInventory(pawn);   // Added equipment, update inventory
         }
 
         internal static void Notify_PrimaryDestroyed(this Pawn_EquipmentTracker _this)
         {
             // Fetch private fields
             Pawn pawn = (Pawn)pawnFieldInfo.GetValue(_this);
-            ThingWithComps primaryInt = (ThingWithComps)primaryIntFieldInfo.GetValue(_this);
-
-            primaryIntFieldInfo.SetValue(_this, null);
-            pawn.meleeVerbs.Notify_EquipmentLost();
+            _this.Remove(_this.Primary);
             if (pawn.Spawned)
+            {
                 pawn.stances.CancelBusyStanceSoft();
+            }
 
-            Utility.TryUpdateInventory(pawn);   // Equipment was destroyed, update inventory
+            CR_Utility.TryUpdateInventory(pawn);   // Equipment was destroyed, update inventory
 
             // Try switching to the next available weapon
             CompInventory inventory = pawn.TryGetComp<CompInventory>();
@@ -84,7 +91,6 @@ namespace Combat_Realism.Detours
         {
             // Fetch private fields
             Pawn pawn = (Pawn)pawnFieldInfo.GetValue(_this);
-            ThingWithComps primaryInt = (ThingWithComps)primaryIntFieldInfo.GetValue(_this);
 
             if (!_this.AllEquipment.Contains(eq))
             {
@@ -95,50 +101,39 @@ namespace Combat_Realism.Detours
             if (!pos.IsValid)
             {
                 Log.Error(string.Concat(new object[]
-		        {
-			        pawn,
-			        " tried to drop ",
-			        eq,
-			        " at invalid cell."
-		        }));
+                {
+                    pawn,
+                    " tried to drop ",
+                    eq,
+                    " at invalid cell."
+                }));
                 resultingEq = null;
                 return false;
             }
-            if (primaryInt == eq)
-            {
-                primaryIntFieldInfo.SetValue(_this, null);  // Changed assignment to SetValue() since we're fetching a private variable through reflection
-            }
+            _this.Remove(eq);
             Thing thing = null;
-            bool flag = GenThing.TryDropAndSetForbidden(eq, pos, ThingPlaceMode.Near, out thing, forbid);
+            bool result = GenThing.TryDropAndSetForbidden(eq, pos, pawn.MapHeld, ThingPlaceMode.Near, out thing, forbid);
             resultingEq = (thing as ThingWithComps);
-            if (flag && resultingEq != null)
-            {
-                resultingEq.GetComp<CompEquippable>().Notify_Dropped();
-            }
-            pawn.meleeVerbs.Notify_EquipmentLost();
-
-            Utility.TryUpdateInventory(pawn);       // Dropped equipment, update inventory
+            CR_Utility.TryUpdateInventory(pawn);       // Dropped equipment, update inventory
 
             // Cancel current job (use verb, etc.)
             if (pawn.Spawned)
                 pawn.stances.CancelBusyStanceSoft();
 
-            return flag;
+            return result;
         }
 
         internal static bool TryTransferEquipmentToContainer(this Pawn_EquipmentTracker _this, ThingWithComps eq, ThingContainer container, out ThingWithComps resultingEq)
         {
             // Fetch private fields
             Pawn pawn = (Pawn)pawnFieldInfo.GetValue(_this);
-            ThingWithComps primaryInt = (ThingWithComps)primaryIntFieldInfo.GetValue(_this);
-
             if (!_this.AllEquipment.Contains(eq))
             {
                 Log.Warning(pawn.LabelCap + " tried to transfer equipment he didn't have: " + eq);
                 resultingEq = null;
                 return false;
             }
-            if (container.TryAdd(eq))
+            if (container.TryAdd(eq, true))
             {
                 resultingEq = null;
             }
@@ -146,13 +141,8 @@ namespace Combat_Realism.Detours
             {
                 resultingEq = eq;
             }
-            if (primaryInt == eq)
-            {
-                primaryIntFieldInfo.SetValue(_this, null);  // Changed assignment to SetValue() since we're fetching a private variable through reflection
-            } 
-            pawn.meleeVerbs.Notify_EquipmentLost();
-
-            Utility.TryUpdateInventory(pawn);   // Equipment was stored away, update inventory
+            _this.Remove(eq);
+            CR_Utility.TryUpdateInventory(pawn);   // Equipment was stored away, update inventory
 
             // Cancel current job (use verb, etc.)
             if (pawn.Spawned)
@@ -161,7 +151,7 @@ namespace Combat_Realism.Detours
             return resultingEq == null;
         }
 
-        internal static bool TryStartAttack(this Pawn_EquipmentTracker _this, TargetInfo targ)
+        internal static bool TryStartAttack(this Pawn_EquipmentTracker _this, LocalTargetInfo targ)
         {
             Pawn pawn = (Pawn)pawnFieldInfo.GetValue(_this);
             if (pawn.stances.FullBodyBusy)
@@ -183,12 +173,12 @@ namespace Combat_Realism.Detours
                     CompAmmoUser compAmmo = _this.Primary.TryGetComp<CompAmmoUser>();
                     if (compAmmo != null)
                     {
-                        if(!compAmmo.hasMagazine)
+                        if (!compAmmo.hasMagazine)
                         {
                             if (compAmmo.useAmmo && !compAmmo.hasAmmo)
                                 return false;
                         }
-                        else if(compAmmo.curMagCount <= 0)
+                        else if (compAmmo.curMagCount <= 0)
                         {
                             compAmmo.TryStartReload();
                             return false;
@@ -196,7 +186,7 @@ namespace Combat_Realism.Detours
                     }
                 }
             }
-            return verb != null && verb.TryStartCastOn(targ, false);
+            return verb != null && verb.TryStartCastOn(targ, false, true);
         }
     }
 }

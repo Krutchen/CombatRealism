@@ -22,13 +22,13 @@ namespace Combat_Realism
         protected override bool TryCastShot()
         {
             ArtilleryMarker marker = ThingMaker.MakeThing(ThingDef.Named(ArtilleryMarker.MarkerDef)) as ArtilleryMarker;
-            ShiftVecReport report = this.ShiftVecReportFor(this.currentTarget);
+            ShiftVecReport report = ShiftVecReportFor(currentTarget);
             marker.aimEfficiency = report.aimEfficiency;
             marker.aimingAccuracy = report.aimingAccuracy;
             marker.lightingShift = report.lightingShift;
             marker.weatherShift = report.weatherShift;
 
-            GenSpawn.Spawn(marker, this.currentTarget.Cell);
+            GenSpawn.Spawn(marker, this.currentTarget.Cell, caster.Map);
 
             // Check for something to attach marker to
             if (this.currentTarget.HasThing)

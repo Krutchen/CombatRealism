@@ -13,8 +13,7 @@ namespace Combat_Realism
                 ShooterPawn.skills.Learn(SkillDefOf.Shooting, 100);
             }
         }*/
-
-        public override ShiftVecReport ShiftVecReportFor(TargetInfo target)
+        public override ShiftVecReport ShiftVecReportFor(LocalTargetInfo target)
         {
             ShiftVecReport report = base.ShiftVecReportFor(target);
             report.circularMissRadius = this.GetMissRadiusForDist(report.shotDist);
@@ -27,7 +26,7 @@ namespace Combat_Realism
             }
             else
             {
-                marker = (ArtilleryMarker)this.currentTarget.Cell.GetFirstThing(ThingDef.Named(ArtilleryMarker.MarkerDef));
+                marker = (ArtilleryMarker)this.currentTarget.Cell.GetFirstThing(caster.Map, ThingDef.Named(ArtilleryMarker.MarkerDef));
             }
             if (marker != null)
             {
@@ -38,7 +37,7 @@ namespace Combat_Realism
 
             }
             // If we don't have a marker check for indirect fire and apply penalty
-            else if (report.shotDist > 107 || !GenSight.LineOfSight(this.caster.Position, report.target.Cell, true))
+            else if (report.shotDist > 107 || !GenSight.LineOfSight(this.caster.Position, report.target.Cell, caster.Map, true))
             {
                 report.indirectFireShift = this.verbPropsCR.indirectFirePenalty * report.shotDist;
                 report.weatherShift = 0f;

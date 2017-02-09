@@ -11,13 +11,15 @@
     <AssemblyName>CombatRealism</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <NoWin32Manifest>False</NoWin32Manifest>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
     <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
     <NoStdLib>False</NoStdLib>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <CscToolPath>$(MSBuildProgramFiles32)\MSBuild\14.0\Bin</CscToolPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -27,6 +29,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -49,12 +52,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\..\RimWorld1135Win_Data\Managed\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Community Core Library">
-      <HintPath>..\..\..\Community Core Library\Assemblies\Community Core Library.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\..\Program Files (x86)\Steam\steamapps\common\RimWorld\RimWorldWin_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -63,14 +61,24 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
-      <HintPath>..\..\..\..\RimWorld1135Win_Data\Managed\UnityEngine.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\..\Program Files (x86)\Steam\steamapps\common\RimWorld\RimWorldWin_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Combat_Realism\DefOfs\CR_JobDefOf.cs" />
+    <Compile Include="Combat_Realism\DefOfs\CR_StatDefOf.cs" />
+    <None Include="Combat_Realism\Designators\Designator_PutInInventory.cs" />
+    <Compile Include="Combat_Realism\DefOfs\CR_TaleDefOf.cs" />
+    <Compile Include="Combat_Realism\DefOfs\CR_ThingDefOf.cs" />
+    <Compile Include="Combat_Realism\Jobs\JobGiver_ConfigurableHostilityResponse.cs" />
+    <Compile Include="Combat_Realism\Jobs\JobGiver_TakeAndEquip.cs" />
+    <Compile Include="Combat_Realism\Projectiles\ProjectileCR_Explosive_RL.cs" />
+    <Compile Include="Combat_Realism\TexButton.cs" />
+    <Compile Include="Combat_Realism\Projectiles\ProjectileCR_Explosive.cs" />
+    <Compile Include="Combat_Realism\Projectiles\Projectile_FireTrail.cs" />
     <Compile Include="Combat_Realism\RecoilPattern.cs" />
     <Compile Include="Combat_Realism\AimMode.cs" />
-    <Compile Include="Combat_Realism\AmmoInjector.cs" />
+    <Compile Include="Detours\AmmoInjector.cs" />
     <Compile Include="Combat_Realism\DamageWorkers\DamageWorker_FlameCR.cs" />
     <Compile Include="Combat_Realism\Defs\DamageDef_CR.cs" />
     <Compile Include="Combat_Realism\Defs\LoadoutGeneratorDef.cs" />
@@ -115,8 +123,20 @@
     <Compile Include="Combat_Realism\DamageWorkers\DamageWorker_AddInjuryCR.cs" />
     <Compile Include="Combat_Realism\Defs\AmmoCategoryDef.cs" />
     <Compile Include="Combat_Realism\Loadouts\Utility_Loadouts.cs" />
-    <Compile Include="Combat_Realism\ThinkNodes\ThinkNode_ConditionalNoJob.cs" />
+    <None Include="Combat_Realism\ThinkNodes\ThinkNode_ConditionalNoJob.cs" />
+    <Compile Include="Combat_Realism\Tools\Tools.cs" />
     <Compile Include="Combat_Realism\TurretTop.cs" />
+    <Compile Include="Combat_Realism\Comps_CCL\CompMilkableRenameable.cs" />
+    <Compile Include="Combat_Realism\Comps_CCL\CompRangedGizmoGiver.cs" />
+    <Compile Include="Combat_Realism\Comps_CCL\CompPawnGizmo.cs" />
+    <Compile Include="Combat_Realism\Comps_CCL\CompProperties_MilkableRenameable.cs" />
+    <Compile Include="Combat_Realism\Comps_CCL\CompProperties_ShearableRenameable.cs" />
+    <Compile Include="Combat_Realism\Comps_CCL\Def_Extensions.cs" />
+    <Compile Include="Combat_Realism\Comps_CCL\CompShearableRenameable.cs" />
+    <Compile Include="DetoursCore\SpecialInjector.cs" />
+    <Compile Include="DetoursCore\Detours.cs" />
+    <Compile Include="DetoursCore\Initializer.cs" />
+    <Compile Include="DetoursCore\InitializerBehaviour.cs" />
     <Compile Include="Detours\DetourInjector.cs" />
     <Compile Include="Combat_Realism\FireMode.cs" />
     <Compile Include="Combat_Realism\Projectiles\BulletCR.cs" />
@@ -129,7 +149,6 @@
     <Compile Include="Combat_Realism\Jobs\JobGiver_HunkerDown.cs" />
     <Compile Include="Combat_Realism\Jobs\JobGiver_RunForCover.cs" />
     <Compile Include="Combat_Realism\Projectiles\ProjectileCR.cs" />
-    <Compile Include="Combat_Realism\Projectiles\ProjectileCR_Explosive.cs" />
     <Compile Include="Combat_Realism\Projectiles\ProjectilePropertiesCR.cs" />
     <Compile Include="Combat_Realism\ShiftVecReport.cs" />
     <Compile Include="Combat_Realism\StatWorkers\StatWorker_MoveSpeed.cs" />
@@ -139,9 +158,9 @@
     <Compile Include="Combat_Realism\ThinkNodes\ThinkNode_ConditionalHunkering.cs" />
     <Compile Include="Combat_Realism\ThinkNodes\ThinkNode_ConditionalSuppressed.cs" />
     <Compile Include="Combat_Realism\ThoughtWorkers\ThoughtWorker_Suppressed.cs" />
-    <Compile Include="Detours\Detours_FloatMenuMaker.cs" />
+    <Compile Include="Detours\Detours_FloatMenuMakerMap.cs" />
     <Compile Include="Detours\Detours_TooltipUtility.cs" />
-    <Compile Include="Combat_Realism\Utility.cs" />
+    <Compile Include="Combat_Realism\CR_Utility.cs" />
     <Compile Include="Combat_Realism\Verbs\VerbPropertiesCR.cs" />
     <Compile Include="Combat_Realism\Verbs\Verb_LaunchProjectileCR.cs" />
     <Compile Include="Combat_Realism\Verbs\Verb_MarkForArtilleryCR.cs" />
@@ -150,7 +169,7 @@
     <Compile Include="Detours\Detours_Pawn_ApparelTracker.cs" />
     <Compile Include="Detours\Detours_Pawn_EquipmentTracker.cs" />
     <Compile Include="Detours\Detours_ThingContainer.cs" />
-    <Compile Include="Detours\Detours_Tradeable.cs" />
+    <Compile Include="Detours\Detours_ThinkNode_JobGiver.cs" />
     <Compile Include="Detours\Detours_TradeDeal.cs" />
     <Compile Include="Detours\Detours_VerbTracker.cs" />
     <Compile Include="Detours\Detours_WorkGiver_HunterHunt.cs" />
@@ -161,8 +180,14 @@
     <Compile Include="Combat_Realism\Jobs\ExternalPawnDrafter.cs" />
     <Compile Include="Combat_Realism\Jobs\JobDriver_Reload.cs" />
     <Compile Include="Combat_Realism\SecondaryDamage.cs" />
+    <Compile Include="Combat_Realism\MassBulkUtility.cs" />
+    <Compile Include="Combat_Realism\StatWorkers\StatWorker_CarryBulk.cs" />
+    <Compile Include="Combat_Realism\StatWorkers\StatWorker_CarryWeight.cs" />
+    <Compile Include="Detours\Detours_MassUtility.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="_DLLs\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

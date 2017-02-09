@@ -7,7 +7,7 @@ using Verse.AI;
 
 namespace Combat_Realism
 {
-	public class Verb_ShootCR : Verb_LaunchProjectileCR
+    public class Verb_ShootCR : Verb_LaunchProjectileCR
     {
         protected override int ShotsPerBurst
         {
@@ -19,7 +19,7 @@ namespace Combat_Realism
                     {
                         return 1;
                     }
-                    if ((this.compFireModes.currentFireMode == FireMode.BurstFire || (useDefaultModes && this.compFireModes.Props.aiUseBurstMode)) 
+                    if ((this.compFireModes.currentFireMode == FireMode.BurstFire || (useDefaultModes && this.compFireModes.Props.aiUseBurstMode))
                         && this.compFireModes.Props.aimedBurstShotCount > 0)
                     {
                         return this.compFireModes.Props.aimedBurstShotCount;
@@ -73,7 +73,7 @@ namespace Combat_Realism
         private int xpTicks = 0;                        // Tracker to see how much xp should be awarded for time spent aiming + bursting
 
         // How much time to spend on aiming
-        private const int aimTicksMin = 30;             
+        private const int aimTicksMin = 30;
         private const int aimTicksMax = 240;
 
         // XP amounts
@@ -99,7 +99,7 @@ namespace Combat_Realism
         {
             get
             {
-                return !(caster.Faction == Faction.OfColony);
+                return !(caster.Faction == Faction.OfPlayer);
             }
         }
 
@@ -109,7 +109,7 @@ namespace Combat_Realism
         public override void WarmupComplete()
         {
             if (xpTicks <= 0)
-                xpTicks = Mathf.CeilToInt(verbProps.warmupTicks * 0.5f);
+                xpTicks = Mathf.CeilToInt(verbProps.warmupTime * 0.5f);
 
             if (this.shouldAim && !this.isAiming)
             {
@@ -184,9 +184,9 @@ namespace Combat_Realism
         /// <summary>
         /// Reset selected fire mode back to default when gun is dropped
         /// </summary>
-        public override void Notify_Dropped()
+        public override void Notify_EquipmentLost()
         {
-            base.Notify_Dropped();
+            base.Notify_EquipmentLost();
             if (this.compFireModes != null)
             {
                 this.compFireModes.ResetModes();
@@ -197,10 +197,10 @@ namespace Combat_Realism
         /// <summary>
         /// Checks to see if fire mode is set to hold fire before doing the base check
         /// </summary>
-        public override bool CanHitTargetFrom(IntVec3 root, TargetInfo targ)
+        public override bool CanHitTargetFrom(IntVec3 root, LocalTargetInfo targ)
         {
             if (CasterIsPawn && !CasterPawn.health.capacities.CapableOf(PawnCapacityDefOf.Sight)) return false;
-            if (this.compFireModes != null && this.compFireModes.currentAimMode == AimMode.HoldFire 
+            if (this.compFireModes != null && this.compFireModes.currentAimMode == AimMode.HoldFire
                 && (!CasterIsPawn || CasterPawn.CurJob == null || CasterPawn.CurJob.def != JobDefOf.Hunt))
                 return false;
             return base.CanHitTargetFrom(root, targ);
@@ -208,6 +208,7 @@ namespace Combat_Realism
 
         protected override bool TryCastShot()
         {
+            //Reduce ammunition
             if (compAmmo != null)
             {
                 if (!compAmmo.TryReduceAmmoCount())
@@ -217,7 +218,16 @@ namespace Combat_Realism
                     return false;
                 }
             }
-            return base.TryCastShot();
+            if (base.TryCastShot())
+            {
+                //Drop casings
+                if (verbPropsCR.ejectsCasings && projectilePropsCR.dropsCasings)
+                {
+                    CR_Utility.ThrowEmptyCasing(this.caster.DrawPos, caster.Map, ThingDef.Named(this.projectilePropsCR.casingMoteDefname));
+                }
+                return true;
+            }
+            return false;
         }
     }
 }

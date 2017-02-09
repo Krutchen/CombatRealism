@@ -26,7 +26,7 @@ namespace Combat_Realism
 			}
 			return false;
 		}
-		public override void Notify_Dropped()
+        public override void Notify_EquipmentLost()
 		{
 			if (this.state == VerbState.Bursting && this.burstShotsLeft < this.verbProps.burstShotCount)
 			{

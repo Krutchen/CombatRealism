@@ -17,13 +17,13 @@ namespace Combat_Realism
         public ThingDef postExplosionSpawnThingDef;
         public float explosionSpawnChance = 1f;
         public SoundDef soundExplode;
-        public List<ThingCount> fragments = new List<ThingCount>();
+        public List<ThingCountClass> fragments = new List<ThingCountClass>();
         public float fragRange = 0f;
-        public bool damageAdjacentTiles = false;
+        public bool applyDamageToExplosionCellsNeighbors = false;
 
         public CompProperties_ExplosiveCR()
         {
-            this.compClass = typeof(CompExplosiveCR);
+            compClass = typeof(CompExplosiveCR);
         }
     }
 }

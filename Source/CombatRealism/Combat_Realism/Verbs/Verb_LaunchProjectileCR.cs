@@ -35,7 +35,7 @@ namespace Combat_Realism
                 {
                     return this.CasterPawn;
                 }
-                return Utility.TryGetTurretOperator(this.caster);
+                return CR_Utility.TryGetTurretOperator(this.caster);
             }
         }
 
@@ -171,7 +171,7 @@ namespace Combat_Realism
         /// <returns>lower arc angle in radians</returns>
         private float GetShotAngle(float velocity, float range, float heightDifference)
         {
-            const float gravity = Utility.gravityConst;
+            const float gravity = CR_Utility.gravityConst;
             float angle = 0;
             angle = (float)Math.Atan((Math.Pow(velocity, 2) + (projectileDef.projectile.flyOverhead ? 1 : -1) * Math.Sqrt(Math.Pow(velocity, 4) - gravity * (gravity * Math.Pow(range, 2) + 2 * heightDifference * Math.Pow(velocity, 2)))) / (gravity * range));
             return angle;
@@ -186,7 +186,7 @@ namespace Combat_Realism
         /// <returns>distance in cells projectile will fly at given arc</returns>
         private float GetDistanceTraveled(float velocity, float angle, float shotHeight)
         {
-            const float gravity = Utility.gravityConst;
+            const float gravity = CR_Utility.gravityConst;
             float distance = (float)((velocity * Math.Cos(angle)) / gravity) * (float)(velocity * Math.Sin(angle) + Math.Sqrt(Math.Pow(velocity * Math.Sin(angle), 2) + 2 * gravity * shotHeight));
             return distance;
         }
@@ -243,15 +243,15 @@ namespace Combat_Realism
             // Projectiles with flyOverhead target the ground below the target and ignore cover
             if (!projectileDef.projectile.flyOverhead)
             {
-                targetableHeight = Utility.GetCollisionHeight(this.currentTarget.Thing);
+                targetableHeight = CR_Utility.GetCollisionHeight(this.currentTarget.Thing);
                 if (report.cover != null)
                 {
-                    targetableHeight += Utility.GetCollisionHeight(report.cover);
+                    targetableHeight += CR_Utility.GetCollisionHeight(report.cover);
                 }
                 heightDifference += targetableHeight * 0.5f;    //Optimal hit level is halfway
             }
 
-            this.shotHeight = Utility.GetCollisionHeight(this.caster);
+            this.shotHeight = CR_Utility.GetCollisionHeight(this.caster);
             if (this.CasterPawn != null)
             {
                 this.shotHeight *= shotHeightFactor;
@@ -323,7 +323,7 @@ namespace Combat_Realism
             return swayVec;
         }
 
-        public virtual ShiftVecReport ShiftVecReportFor(TargetInfo target)
+        public virtual ShiftVecReport ShiftVecReportFor(LocalTargetInfo target)
         {
             IntVec3 targetCell = target.Cell;
             ShiftVecReport report = new ShiftVecReport();
@@ -332,10 +332,10 @@ namespace Combat_Realism
             report.aimEfficiency = this.aimEfficiency;
             report.shotDist = (targetCell - this.caster.Position).LengthHorizontal;
 
-            report.lightingShift = 1 - Find.GlowGrid.GameGlowAt(targetCell);
-            if (!this.caster.Position.Roofed() || !targetCell.Roofed())  //Change to more accurate algorithm?
+            report.lightingShift = 1 - caster.Map.glowGrid.GameGlowAt(targetCell);
+            if (!this.caster.Position.Roofed(caster.Map) || !targetCell.Roofed(caster.Map))  //Change to more accurate algorithm?
             {
-                report.weatherShift = 1 - Find.WeatherManager.CurWeatherAccuracyMultiplier;
+                report.weatherShift = 1 - caster.Map.weatherManager.CurWeatherAccuracyMultiplier;
             }
             report.shotSpeed = this.shotSpeed;
             report.swayDegrees = this.swayAmplitude;
@@ -367,7 +367,7 @@ namespace Combat_Realism
 
             //Raycast accross all segments to check for cover
             List<IntVec3> checkedCells = new List<IntVec3>();
-            Thing thingAtTargetLoc = GridsUtility.GetEdifice(targetLoc.ToIntVec3());
+            Thing thingAtTargetLoc = GridsUtility.GetEdifice(targetLoc.ToIntVec3(), caster.Map);
             Thing newCover = null;
             for (int i = 0; i <= numSegments; i++)
             {
@@ -375,7 +375,7 @@ namespace Combat_Realism
                 if (!checkedCells.Contains(cell))
                 {
                     //Cover check, if cell has cover compare fillPercent and get the highest piece of cover, ignore if cover is the target (e.g. solar panels, crashed ship, etc)
-                    Thing coverAtCell = GridsUtility.GetCover(cell);
+                    Thing coverAtCell = GridsUtility.GetCover(cell, caster.Map);
                     if (coverAtCell != null
                         && (thingAtTargetLoc == null || !coverAtCell.Equals(thingAtTargetLoc))
                         && (newCover == null || newCover.def.fillPercent < coverAtCell.def.fillPercent)
@@ -398,12 +398,12 @@ namespace Combat_Realism
         /// <param name="root">The position from which to check</param>
         /// <param name="targ">The target to check for line of sight</param>
         /// <returns>True if shooter can hit target from root position, false otherwise</returns>
-        public override bool CanHitTargetFrom(IntVec3 root, TargetInfo targ)
+        public override bool CanHitTargetFrom(IntVec3 root, LocalTargetInfo targ)
         {
             //Sanity check for flyOverhead projectiles, they should not attack things under thick roofs
             if (projectileDef.projectile.flyOverhead)
             {
-                RoofDef roofDef = Find.RoofGrid.RoofAt(targ.Cell);
+                RoofDef roofDef = caster.Map.roofGrid.RoofAt(targ.Cell);
                 if (roofDef != null && roofDef.isThickRoof)
                 {
                     return false;
@@ -417,8 +417,8 @@ namespace Combat_Realism
                 Thing coverTarg;
                 if (this.GetPartialCoverBetween(root.ToVector3Shifted(), targ.Cell.ToVector3Shifted(), out coverTarg))
                 {
-                    float targetHeight = Utility.GetCollisionHeight(targ.Thing);
-                    if (targetHeight <= Utility.GetCollisionHeight(coverTarg))
+                    float targetHeight = CR_Utility.GetCollisionHeight(targ.Thing);
+                    if (targetHeight <= CR_Utility.GetCollisionHeight(coverTarg))
                     {
                         return false;
                     }
@@ -427,12 +427,12 @@ namespace Combat_Realism
                 Thing coverShoot;
                 if (this.GetPartialCoverBetween(targ.Cell.ToVector3Shifted(), root.ToVector3Shifted(), out coverShoot))
                 {
-                    float shotHeight = Utility.GetCollisionHeight(this.caster);
+                    float shotHeight = CR_Utility.GetCollisionHeight(this.caster);
                     if (this.CasterPawn != null)
                     {
                         shotHeight *= shotHeightFactor;
                     }
-                    if (shotHeight <= Utility.GetCollisionHeight(coverShoot))
+                    if (shotHeight <= CR_Utility.GetCollisionHeight(coverShoot))
                     {
                         return false;
                     }
@@ -455,30 +455,30 @@ namespace Combat_Realism
             }
             if (this.projectilePropsCR.pelletCount < 1)
             {
-                Log.Error(this.ownerEquipment.LabelBaseCap + " tried firing with pelletCount less than 1.");
+                Log.Error(this.ownerEquipment.LabelCap + " tried firing with pelletCount less than 1.");
                 return false;
             }
             for (int i = 0; i < this.projectilePropsCR.pelletCount; i++)
             {
                 Vector3 casterExactPosition = this.caster.DrawPos;
                 ProjectileCR projectile = (ProjectileCR)ThingMaker.MakeThing(projectileDef, null);
-                GenSpawn.Spawn(projectile, shootLine.Source);
+                GenSpawn.Spawn(projectile, shootLine.Source, caster.Map);
                 float lengthHorizontalSquared = (this.currentTarget.Cell - this.caster.Position).LengthHorizontalSquared;
 
                 //New aiming algorithm
                 projectile.canFreeIntercept = true;
-                ShiftVecReport report = this.ShiftVecReportFor(this.currentTarget);
+                ShiftVecReport report = ShiftVecReportFor(this.currentTarget);
                 Vector3 targetVec3 = this.ShiftTarget(report);
                 projectile.shotAngle = this.shotAngle;
                 projectile.shotHeight = this.shotHeight;
                 projectile.shotSpeed = this.shotSpeed;
                 if (this.currentTarget.Thing != null)
                 {
-                    projectile.Launch(this.caster, casterExactPosition, new TargetInfo(this.currentTarget.Thing), targetVec3, this.ownerEquipment);
+                    projectile.Launch(this.caster, casterExactPosition, new LocalTargetInfo(this.currentTarget.Thing), targetVec3, this.ownerEquipment);
                 }
                 else
                 {
-                    projectile.Launch(this.caster, casterExactPosition, new TargetInfo(shootLine.Dest), targetVec3, this.ownerEquipment);
+                    projectile.Launch(this.caster, casterExactPosition, new LocalTargetInfo(shootLine.Dest), targetVec3, this.ownerEquipment);
                 }
             }
             this.numShotsFired++;
